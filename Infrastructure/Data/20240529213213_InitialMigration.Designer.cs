@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Data
 {
     [DbContext(typeof(OrganizationAndUsersEfContext))]
-    [Migration("20240529204644_InitialMigration")]
+    [Migration("20240529213213_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -43,6 +43,20 @@ namespace Infrastructure.Data
                     b.HasKey("Id");
 
                     b.ToTable("Organizations");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Org1",
+                            SlugTenant = "org1"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Org2",
+                            SlugTenant = "org2"
+                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>
@@ -68,34 +82,67 @@ namespace Infrastructure.Data
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Email = "john@example.com",
+                            Name = "John Doe",
+                            Password = "password"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Email = "jane@example.com",
+                            Name = "Jane Smith",
+                            Password = "password"
+                        });
                 });
 
-            modelBuilder.Entity("OrganizationUser", b =>
+            modelBuilder.Entity("UserOrganization", b =>
                 {
-                    b.Property<int>("OrganizationsId")
+                    b.Property<int>("UserId")
                         .HasColumnType("integer");
 
-                    b.Property<int>("UsersId")
+                    b.Property<int>("OrganizationId")
                         .HasColumnType("integer");
 
-                    b.HasKey("OrganizationsId", "UsersId");
+                    b.HasKey("UserId", "OrganizationId");
 
-                    b.HasIndex("UsersId");
+                    b.HasIndex("OrganizationId");
 
-                    b.ToTable("OrganizationUser");
+                    b.ToTable("UserOrganization");
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = 1,
+                            OrganizationId = 1
+                        },
+                        new
+                        {
+                            UserId = 1,
+                            OrganizationId = 2
+                        },
+                        new
+                        {
+                            UserId = 2,
+                            OrganizationId = 1
+                        });
                 });
 
-            modelBuilder.Entity("OrganizationUser", b =>
+            modelBuilder.Entity("UserOrganization", b =>
                 {
                     b.HasOne("Domain.Entities.Organization", null)
                         .WithMany()
-                        .HasForeignKey("OrganizationsId")
+                        .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.User", null)
                         .WithMany()
-                        .HasForeignKey("UsersId")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

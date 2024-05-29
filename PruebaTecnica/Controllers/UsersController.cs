@@ -19,14 +19,21 @@ namespace PruebaTecnica.Controllers
         }
 
         [HttpPost, Route("Login")]
-        public async Task<IActionResult> LoginAsync([FromBody] UserLoginDto userLoginRequest)
+        public async Task<IActionResult> LoginAsync([FromBody] UserLoginDto userLoginDto)
         {
-            var user = await _userService.GetUserByEmailAndPassword(userLoginRequest.Email, userLoginRequest.Password);
+            var user = await _userService.GetUserByEmailAndPassword(userLoginDto);
             if(user == null)
             {
                 throw new UnauthorizedAccessException($"Email o password inválidos");
             }
 
+            return Ok();
+        }
+
+        [HttpPost, Route("Create")]
+        public async Task<IActionResult> CreateUserAsync([FromBody] UserCreateDto userCreateDto)
+        {
+            await _userService.CreateUser(userCreateDto);
             return Ok();
         }
     }

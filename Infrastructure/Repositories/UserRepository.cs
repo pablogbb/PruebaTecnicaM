@@ -12,12 +12,22 @@ namespace Infrastructure.Repositories
 {
     public interface IUserRepository: IGenericRepository<User>
     {
-
+        void AssingUserToOrg(int userId, int organizationId);
     }
     public class UserRepository : GenericRepository<User, OrganizationAndUsersEfContext>, IUserRepository
     {
         public UserRepository(OrganizationAndUsersEfContext dbContext) : base(dbContext)
         {
+        }
+
+        public void AssingUserToOrg(int userId, int organizationId)
+        {
+            _context.UserOrganizations.Add(new UserOrganization
+            {
+                UserId = userId,
+                OrganizationId = organizationId
+            });
+            _context.SaveChanges();
         }
     }
 }

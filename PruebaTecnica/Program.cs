@@ -18,12 +18,12 @@ var conn = builder.Configuration.GetConnectionString("PsgqlOrgAndUsersDbConnecti
 builder.Services.AddDbContext<OrganizationAndUsersEfContext>(options => options.UseNpgsql(conn, x=> x.MigrationsAssembly("Infrastructure")));
 builder.Services.AddDbContext<TenantEfContext>();
 
-builder.Services.AddScoped<UserRepository>();
-builder.Services.AddScoped<OrganizationRepository>();
-builder.Services.AddScoped<ProductRepository>();
+builder.Services.AddScoped<IUserRepository,UserRepository>();
+builder.Services.AddScoped<IOrganizationRepository,OrganizationRepository>();
+builder.Services.AddScoped<IProductRepository,ProductRepository>();
 
 builder.Services.AddScoped<UserService>();
-
+builder.Services.AddScoped<OrganizationService>();
 
 var app = builder.Build();
 
