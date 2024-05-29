@@ -13,9 +13,9 @@ namespace Infrastructure.Repositories
     {
 
     }
-    public class ProductRepository : GenericRepository<Product, OrganizationProductsEfContext>, IProductRepository
+    public class ProductRepository : GenericRepository<Product, TenantEfContext>, IProductRepository
     {
-        public ProductRepository(OrganizationProductsEfContext dbContext) : base(dbContext)
+        public ProductRepository(TenantEfContext dbContext) : base(dbContext)
         {
         }
     }
