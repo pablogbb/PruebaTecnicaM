@@ -1,4 +1,6 @@
+using Application.Services;
 using Infrastructure.Context;
+using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using PruebaTecnica.Middlewares;
 
@@ -11,15 +13,25 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var con1 = builder.Configuration.GetConnectionString("PsgqlOrgAndUsersDbConnection");
-var con2 = builder.Configuration.GetConnectionString("PsgqlOrgAndProdsDbConnection");
+var conn = builder.Configuration.GetConnectionString("PsgqlOrgAndUsersDbConnection");
 
-builder.Services.AddDbContext<OrganizationAndUsersEfContext>(options => options.UseNpgsql(con1));
+builder.Services.AddDbContext<OrganizationAndUsersEfContext>(options => options.UseNpgsql(conn, x=> x.MigrationsAssembly("Infrastructure")));
 builder.Services.AddDbContext<TenantEfContext>();
+
+builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<OrganizationRepository>();
+builder.Services.AddScoped<ProductRepository>();
+
+builder.Services.AddScoped<UserService>();
 
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    OrganizationAndUsersEfContext context = scope.ServiceProvider.GetRequiredService<OrganizationAndUsersEfContext>();
+    context.Database.Migrate();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
