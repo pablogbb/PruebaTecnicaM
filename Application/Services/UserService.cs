@@ -1,4 +1,6 @@
 ﻿using Application.Dtos;
+using Application.Mappers;
+using AutoMapper;
 using Domain.Entities;
 using Infrastructure.Repositories;
 using System;
@@ -13,20 +15,35 @@ namespace Application.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IOrganizationRepository _organizationRepository;
+        private Mapper mapper;
 
         public UserService(IUserRepository userRepository, IOrganizationRepository organizationRepository)
         {
             _userRepository = userRepository;
             _organizationRepository = organizationRepository;
+            mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MappingProfile>()));
         }
 
         public async Task<User> GetUserByEmailAndPassword(UserLoginDto userLoginDto)
         {
             return await _userRepository.Single(u => u.Email == userLoginDto.Email && u.Password == userLoginDto.Password);
-        }       
+        }
+
+        public IEnumerable<OrganizationDto> GetOrganizationsByUser(int userId)
+        {
+            var orgs = _userRepository.GetOrganizationsByUser(userId);
+            return mapper.Map<List<OrganizationDto>>(orgs);
+        }
 
         public async Task CreateUser(UserCreateDto userCreateDto)
         {
+
+            var userByEmail = _userRepository.Where(x => x.Email == userCreateDto.Email);
+
+            if(userByEmail != null)
+            {
+                throw new Exception($"Ya existe un usuario con el email: {userCreateDto.Email}");
+            }
             var org = await _organizationRepository.Single(x => x.Id == userCreateDto.OrganizationId);
             if (org == null)
             {
@@ -43,6 +60,12 @@ namespace Application.Services
             _userRepository.AssingUserToOrg(user.Id, userCreateDto.OrganizationId);
 
         }
+
+        public void AssingUserToOrg(int userId, int organizationId)
+        {
+            _userRepository.AssingUserToOrg(userId, organizationId);
+        }
+
 
     }
 }

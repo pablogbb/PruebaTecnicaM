@@ -12,6 +12,6 @@ namespace Domain.Entities
         public string Name { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
-        public List<Organization> Organizations { get; set; } = [];
+        public List<UserOrganization> userOrganizations { get; set; } = [];
     }
 }

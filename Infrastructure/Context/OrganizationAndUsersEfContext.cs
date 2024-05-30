@@ -21,21 +21,34 @@ namespace Infrastructure.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<User>()
-                .HasMany(e => e.Organizations)
-                .WithMany(e => e.Users).UsingEntity<UserOrganization>(
-                j => j.HasOne(o => o.Organization).WithMany().HasForeignKey(uc => uc.OrganizationId),
-                j => j.HasOne(u => u.User).WithMany().HasForeignKey(uc => uc.UserId),
-                j =>
-                {
-                    j.HasKey(uc => new { uc.UserId, uc.OrganizationId });
-                    j.ToTable("UserOrganizations"); // Nombre de la tabla para la entidad de unión
-                    j.HasData(
-                        new { UserId = 1, OrganizationId = 1 },
-                        new { UserId = 1, OrganizationId = 2 },
-                        new { UserId = 2, OrganizationId = 1 }
-                    );
-                });
+            //modelBuilder.Entity<User>()
+            //    .HasMany(e => e.Organizations)
+            //    .WithMany(e => e.Users).UsingEntity<UserOrganization>(
+            //    j => j.HasOne(o => o.Organization).WithMany().HasForeignKey(uc => uc.OrganizationId),
+            //    j => j.HasOne(u => u.User).WithMany().HasForeignKey(uc => uc.UserId),
+            //    j =>
+            //    {
+            //        j.HasKey(uc => new { uc.UserId, uc.OrganizationId });
+            //        j.ToTable("UserOrganizations"); // Nombre de la tabla para la entidad de unión
+            //        j.HasData(
+            //            new { UserId = 1, OrganizationId = 1 },
+            //            new { UserId = 1, OrganizationId = 2 },
+            //            new { UserId = 2, OrganizationId = 1 }
+            //        );
+            //    });
+
+            modelBuilder.Entity<UserOrganization>()
+            .HasKey(ec => new { ec.UserId, ec.OrganizationId });
+
+            modelBuilder.Entity<UserOrganization>()
+                .HasOne(ec => ec.User)
+                .WithMany(e => e.userOrganizations)
+                .HasForeignKey(ec => ec.UserId);
+
+            modelBuilder.Entity<UserOrganization>()
+                .HasOne(ec => ec.Organization)
+                .WithMany(c => c.userOrganizations)
+                .HasForeignKey(ec => ec.OrganizationId);
 
             // Datos iniciales para User
             modelBuilder.Entity<User>().HasData(
@@ -48,6 +61,12 @@ namespace Infrastructure.Context
                 new Organization { Id = 1, Name = "Org1", SlugTenant = "org1" },
                 new Organization { Id = 2, Name = "Org2", SlugTenant = "org2" }
             );
+
+            modelBuilder.Entity<UserOrganization>().HasData(
+                new { UserId = 1, OrganizationId = 1 },
+                        new { UserId = 1, OrganizationId = 2 },
+                        new { UserId = 2, OrganizationId = 1 }
+    );
         }
     }
 }
