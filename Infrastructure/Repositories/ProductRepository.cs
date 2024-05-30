@@ -1,4 +1,4 @@
-﻿using Domain.Entities;
+﻿using Domain.Entities.Products;
 using Infrastructure.Context;
 using Infrastructure.Repositories.Generic;
 using Microsoft.EntityFrameworkCore;

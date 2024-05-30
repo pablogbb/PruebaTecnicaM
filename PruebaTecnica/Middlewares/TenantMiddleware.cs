@@ -1,6 +1,7 @@
 ﻿using Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace PruebaTecnica.Middlewares
 {
@@ -15,31 +16,46 @@ namespace PruebaTecnica.Middlewares
             _configuration = configuration;
         }
 
-        public async Task Invoke(HttpContext context)
+        public async Task Invoke(HttpContext context, TenantEfContext tenantEfContext)
         {
-            // Obtener el slugTenant de la URL
             var slugTenant = context.Request.RouteValues["slugTenant"] as string;
 
             if (!string.IsNullOrEmpty(slugTenant))
             {
-                // Crear el DbContext basado en el tenantId
-                var dbContext = CreateDbContext(context, slugTenant);
-                context.Items["DbContext"] = dbContext;
+                var connectionString = _configuration.GetConnectionString("PsgqlTenantDbConnection") ?? "";
+                var tenantConnectionString = connectionString.Replace("{DatabaseName}", slugTenant);
+
+                tenantEfContext.ChangeConnectionString(tenantConnectionString);
+
+                // validacion con el token
+                var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                if (string.IsNullOrEmpty(token))
+                {
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    await context.Response.WriteAsync("Authorization token is missing.");
+                    return;
+                }
+                try
+                {
+                    var jwtToken = new JwtSecurityTokenHandler().ReadJwtToken(token);
+                    var tenantIds = jwtToken.Claims.Where(c => c.Type == "SlugTenant").Select(c => c.Value).ToList();
+
+                    if (!tenantIds.Contains(slugTenant))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        await context.Response.WriteAsync("Unauthorized: Invalid tenant.");
+                        return;
+                    }
+                }
+                catch
+                {
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    await context.Response.WriteAsync("Invalid token.");
+                    return;
+                }
             }
 
             await _next(context);
-        }
-
-        private TenantEfContext CreateDbContext(HttpContext context, string slugTenant)
-        {
-            var optionsBuilder = new DbContextOptionsBuilder<TenantEfContext>();
-
-            var connectionString = _configuration.GetConnectionString("PsgqlTenantDbConnection");
-            var tenantConnectionString = connectionString??"".Replace("{DatabaseName}", slugTenant);
-
-            optionsBuilder.UseNpgsql(tenantConnectionString);
-
-            return new TenantEfContext(optionsBuilder.Options);
         }
     }
 }

@@ -33,6 +33,9 @@ namespace PruebaTecnica.Controllers
                 throw new UnauthorizedAccessException($"Email o password inválidos");
             }
 
+            var organizations = _userService.GetOrganizationsByUser(user.Id);
+            var tenants = organizations.Select(x => new { slugTenant = x.SlugTenant }).ToList();
+
             string secretKey = _configuration["Jwt:SecretKey"];
             string issuer = _configuration["Jwt:Issuer"];
             string sudience = _configuration["Jwt:Audience"];
@@ -40,11 +43,16 @@ namespace PruebaTecnica.Controllers
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            var claims = new[]
+            var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim("id", user.Id.ToString()),
             };
+
+            foreach (var tenant in tenants)
+            {
+                claims.Add(new Claim("SlugTenant", tenant.slugTenant));
+            }
 
             var tokenConfig = new JwtSecurityToken(
                 issuer: issuer,
@@ -54,11 +62,7 @@ namespace PruebaTecnica.Controllers
                 signingCredentials: credentials
                 );
 
-            var organizations = _userService.GetOrganizationsByUser(user.Id);
-
             var token = new JwtSecurityTokenHandler().WriteToken(tokenConfig);
-
-            var tenants = organizations.Select(x => new { slugTenant = x.SlugTenant }).ToList();
 
             return Ok(new { accessToken = token, tenants  });
         }
