@@ -40,7 +40,7 @@ namespace Application.Services
 
             var userByEmail = _userRepository.Where(x => x.Email == userCreateDto.Email);
 
-            if(userByEmail != null)
+            if(userByEmail.Any())
             {
                 throw new Exception($"Ya existe un usuario con el email: {userCreateDto.Email}");
             }

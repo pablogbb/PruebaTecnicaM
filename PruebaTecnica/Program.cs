@@ -14,9 +14,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var conn = builder.Configuration.GetConnectionString("PsgqlOrgAndUsersDbConnection");
+var conn1 = builder.Configuration.GetConnectionString("PsgqlTenantDbConnection");
 
 builder.Services.AddDbContext<OrganizationAndUsersEfContext>(options => options.UseNpgsql(conn, x=> x.MigrationsAssembly("Infrastructure")));
-builder.Services.AddDbContext<TenantEfContext>();
+builder.Services.AddDbContext<TenantEfContext>(options => options.UseNpgsql(conn1, x => x.MigrationsAssembly("Infrastructure")));
 
 builder.Services.AddScoped<IUserRepository,UserRepository>();
 builder.Services.AddScoped<IOrganizationRepository,OrganizationRepository>();

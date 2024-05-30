@@ -1,6 +1,7 @@
 ﻿using Domain.Entities;
 using Infrastructure.Context;
 using Infrastructure.Repositories.Generic;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,5 +19,7 @@ namespace Infrastructure.Repositories
         public ProductRepository(TenantEfContext dbContext) : base(dbContext)
         {
         }
+
+       
     }
 }

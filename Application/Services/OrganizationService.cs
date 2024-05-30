@@ -16,6 +16,7 @@ namespace Application.Services
         private readonly IOrganizationRepository _organizationRepository;
         private Mapper mapper;
 
+
         public OrganizationService(IOrganizationRepository organizationRepository)
         {
             _organizationRepository = organizationRepository;
@@ -24,7 +25,7 @@ namespace Application.Services
 
         public async 
         Task
-CreateOrganization(OrganizationDto organizationCreateDto)
+        CreateOrganization(OrganizationDto organizationCreateDto, string TenantConnectionString)
         {
             var existSlugTenant = _organizationRepository.Where(x => x.SlugTenant == organizationCreateDto.SlugTenant);
             if (existSlugTenant.Any())
@@ -37,6 +38,8 @@ CreateOrganization(OrganizationDto organizationCreateDto)
             organization.SlugTenant = organizationCreateDto.SlugTenant;
 
             await _organizationRepository.Create(organization);
+
+            await _organizationRepository.CreateDatabaseAndMigrateAsync(organization.SlugTenant, TenantConnectionString);
         }
 
         public IEnumerable<OrganizationDto> GetList()

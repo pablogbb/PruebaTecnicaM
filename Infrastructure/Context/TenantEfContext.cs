@@ -15,5 +15,13 @@ namespace Infrastructure.Context
         }
 
         public virtual DbSet<Product> Products { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Product>().HasData(
+                new Product { Id = 1, Name = "Prod1", Description = "Prod1Description" },
+                new Product { Id = 2, Name = "Prod2", Description = "Prod2Description" }
+            );
+        }
     }
 }

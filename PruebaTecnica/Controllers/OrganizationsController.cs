@@ -10,10 +10,12 @@ namespace PruebaTecnica.Controllers
     public class OrganizationsController : ControllerBase
     {
         private readonly OrganizationService _organizationService;
+        private readonly IConfiguration _configuration;
 
-        public OrganizationsController(OrganizationService organizationService)
+        public OrganizationsController(OrganizationService organizationService, IConfiguration configuration)
         {
             _organizationService = organizationService;
+            _configuration = configuration;
         }
 
         [HttpGet, Route("list")]
@@ -26,7 +28,7 @@ namespace PruebaTecnica.Controllers
         [HttpPost,Route("Create")]
         public async Task<IActionResult> CreateOrganizationAsync([FromBody] OrganizationDto organizationCreateDto)
         {
-            await _organizationService.CreateOrganization(organizationCreateDto);
+            await _organizationService.CreateOrganization(organizationCreateDto, _configuration.GetConnectionString("PsgqlTenantDbConnection"));
             return Ok();
         }
     }
